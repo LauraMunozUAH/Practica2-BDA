@@ -43,3 +43,12 @@ WITH (DELIMITER ',', FORMAT csv, HEADER false);
 COPY matriculas(carnet_estu,codigo_asig, nota)
 FROM 'C:\datos_matriculas.csv'
 WITH (DELIMITER ',', FORMAT csv, HEADER false);
+
+--CUESTIÓN 3
+SELECT relname, reltuples, relpages
+FROM pg_class
+WHERE relname IN ('estudiantes','asignaturas','matriculas');
+
+ANALYZE estudiantes;
+ANALYZE asignaturas;
+ANALYZE matriculas;
