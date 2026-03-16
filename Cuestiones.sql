@@ -52,3 +52,37 @@ WHERE relname IN ('estudiantes','asignaturas','matriculas');
 ANALYZE estudiantes;
 ANALYZE asignaturas;
 ANALYZE matriculas;
+
+
+--CUESTIÓN 4
+SELECT COUNT(*)
+FROM estudiantes
+WHERE creditos < 100;
+
+EXPLAIN
+SELECT COUNT(*)
+FROM estudiantes
+WHERE creditos < 100;
+
+SELECT attname, n_distinct, most_common_vals
+FROM pg_stats
+WHERE tablename = 'estudiantes';
+
+--CUESTIÓN 5
+EXPLAIN
+SELECT e.nombre
+FROM estudiantes e
+JOIN matriculas m ON e.carnet = m.carnet_estu
+WHERE e.creditos = 150 AND m.nota >= 5
+GROUP BY e.carnet, e.nombre
+HAVING COUNT(m.codigo_asig) >= 3;
+
+--CUESTIÓN 6
+EXPLAIN
+SELECT a.nombre
+FROM asignaturas a
+JOIN matriculas m ON a.codigo = m.codigo_asig
+JOIN estudiantes e ON e.carnet = m.carnet_estu
+WHERE a.creditos = 10
+AND m.nota = 7
+AND e.creditos = 50;
