@@ -11,19 +11,20 @@ SELECT
     current_setting('max_parallel_workers') AS max_parallel_workers;
 
 --CUESTIÓN 2
-CREATE TABLE estudiantes (
+
+CREATE TABLE IF NOT EXISTS estudiantes (
     carnet NUMERIC PRIMARY KEY,
     nombre TEXT,
     apellidos TEXT,
     creditos NUMERIC
 );
-CREATE TABLE asignaturas (
+CREATE TABLE IF NOT EXISTS asignaturas (
     codigo NUMERIC PRIMARY KEY,
     nombre TEXT,
     caracter TEXT,
     creditos NUMERIC
 );
-CREATE TABLE matriculas (
+CREATE TABLE IF NOT EXISTS matriculas (
     carnet_estu NUMERIC,
     codigo_asig NUMERIC,
     nota NUMERIC,
