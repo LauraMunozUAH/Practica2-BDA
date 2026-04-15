@@ -8,10 +8,9 @@
 -- These commands were put in this file only as a convenience.
 -- 
 -- object: new_database | type: DATABASE --
--- DROP DATABASE IF EXISTS new_database;
+-- DROP DATABASE IF EXISTS musicos;
 CREATE DATABASE musicos;
 -- ddl-end --
-
 
 -- object: public."Musicos" | type: TABLE --
 -- DROP TABLE IF EXISTS public."Musicos" CASCADE;
@@ -410,6 +409,88 @@ WHERE codigo_musico IN (
 );
 
 -- CUESTIÓN 12
+
+WITH grupos_validos AS (
+    SELECT m."Codigo_grupo_Grupo"
+    FROM "Musicos" m
+    GROUP BY m."Codigo_grupo_Grupo"
+    HAVING COUNT(*) > 3
+),
+grupos_conciertos_espana AS (
+    SELECT DISTINCT gtc."Codigo_grupo_Grupo"
+    FROM "Grupos_Tocan_Conciertos" gtc
+    JOIN "Conciertos" c
+        ON gtc."Codigo_concierto_Conciertos" = c."Codigo_concierto"
+    JOIN "Entradas" e
+        ON c."Codigo_concierto" = e."Codigo_concierto_Conciertos"
+    WHERE c."Pais" = 'España'
+      AND e."Precio"::numeric BETWEEN 20 AND 50
+),
+grupos_discos_rock AS (
+    SELECT DISTINCT d."Codigo_grupo_Grupo"
+    FROM "Discos" d
+    JOIN "Canciones" c
+        ON d."Codigo_disco" = c."Codigo_disco_Discos"
+    WHERE d."Genero" = 'rock'
+      AND c."Duracion" > '00:03:00'
+)
+SELECT
+    (COUNT(DISTINCT m.codigo_musico) * 100.0) /
+    (SELECT COUNT(*) FROM "Musicos") AS porcentaje
+FROM "Musicos" m
+JOIN grupos_validos gv
+    ON m."Codigo_grupo_Grupo" = gv."Codigo_grupo_Grupo"
+JOIN grupos_conciertos_espana gce
+    ON m."Codigo_grupo_Grupo" = gce."Codigo_grupo_Grupo"
+JOIN grupos_discos_rock gdr
+    ON m."Codigo_grupo_Grupo" = gdr."Codigo_grupo_Grupo";
+
+EXPLAIN
+WITH grupos_validos AS (
+    SELECT m."Codigo_grupo_Grupo"
+    FROM "Musicos" m
+    GROUP BY m."Codigo_grupo_Grupo"
+    HAVING COUNT(*) > 3
+),
+grupos_conciertos_espana AS (
+    SELECT DISTINCT gtc."Codigo_grupo_Grupo"
+    FROM "Grupos_Tocan_Conciertos" gtc
+    JOIN "Conciertos" c
+        ON gtc."Codigo_concierto_Conciertos" = c."Codigo_concierto"
+    JOIN "Entradas" e
+        ON c."Codigo_concierto" = e."Codigo_concierto_Conciertos"
+    WHERE c."Pais" = 'España'
+      AND e."Precio"::numeric BETWEEN 20 AND 50
+),
+grupos_discos_rock AS (
+    SELECT DISTINCT d."Codigo_grupo_Grupo"
+    FROM "Discos" d
+    JOIN "Canciones" c
+        ON d."Codigo_disco" = c."Codigo_disco_Discos"
+    WHERE d."Genero" = 'rock'
+      AND c."Duracion" > '00:03:00'
+)
+SELECT
+    (COUNT(DISTINCT m.codigo_musico) * 100.0) /
+    (SELECT COUNT(*) FROM "Musicos") AS porcentaje
+FROM "Musicos" m
+JOIN grupos_validos gv
+    ON m."Codigo_grupo_Grupo" = gv."Codigo_grupo_Grupo"
+JOIN grupos_conciertos_espana gce
+    ON m."Codigo_grupo_Grupo" = gce."Codigo_grupo_Grupo"
+JOIN grupos_discos_rock gdr
+    ON m."Codigo_grupo_Grupo" = gdr."Codigo_grupo_Grupo";
+
+--CUESTIÓN 14
+-- Creación de Índices Compuestos (Optimización de JOIN + Selección)
+CREATE INDEX idx_compuesto_entradas_precio ON "Entradas" ("Codigo_concierto_Conciertos", "Precio");
+
+-- Aplicación de la técnica CLUSTER (Reorganización física)
+CLUSTER "Entradas" USING idx_compuesto_entradas_precio;
+CLUSTER "Musicos" USING idx_musicos_grupo;
+
+-- Mantenimiento y actualización de estadísticas
+ANALYZE;
 
 WITH grupos_validos AS (
     SELECT m."Codigo_grupo_Grupo"
